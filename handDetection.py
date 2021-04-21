@@ -12,7 +12,7 @@ np.set_printoptions(suppress=True)
 gesture = ['Paper','Rock','Scissors']
 
 cam = cv2.VideoCapture(0)
-# Load the model
+# Loading the model trained from Teachable Machine
 model = tensorflow.keras.models.load_model('keras_model.h5')
 
 # For webcam input:
@@ -39,23 +39,30 @@ with mp_hands.Hands(
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if results.multi_hand_landmarks:
+      # Creating array
       data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
       inp = np.reshape(fc,(1,224,224,3)).astype(np.float32)
+      # Setting image to array
       image_array = np.asarray(inp)
       normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
       data[0] = normalized_image_array
+      # Plugging numericals into the prediction model
       prediction = model.predict(data)
+      # Getting the String attatched to gesture
       gest = gesture[np.argmax(prediction)]
+
       #Getting the first hand rendered in the screen
       hand_landmark = results.multi_hand_landmarks[0]
       #Drawing the first hand in the scene
-      mp_drawing.draw_landmarks(image, hand_landmark, mp_hands.HAND_CONNECTIONS)
+      #mp_drawing.draw_landmarks(image, hand_landmark, mp_hands.HAND_CONNECTIONS)
       data_point = hand_landmark.landmark[0]
-      #Getting positional data of the wrist
+
+      # Getting positional data of the wrist
+      # Coordinate plane between 0-1 x 0-1
       x=data_point.x
       y=data_point.y
-      z=data_point.z
-      print(gest+" @ ("+str(x)+","+str(y)+","+str(z)+")")
+      print(gest+" @ ("+str(x)+","+str(y))
+    # Showing frame
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
       break
