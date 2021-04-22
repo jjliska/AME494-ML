@@ -6,6 +6,7 @@ import numpy as np
 from pysinewave import SineWave
 import collections
 
+#Defining pixels object
 class pixels:
     def __init__(self, x, y, color):
         self.x = x
@@ -21,7 +22,7 @@ np.set_printoptions(suppress=True)
 gesture = ['Paper','Rock','Scissors']
 gest = ""
 
-pixelLoc = []
+pixelLoc = [None] * 100
 
 camRes = [640,480]
 
@@ -91,13 +92,19 @@ with mp_hands.Hands(
       # Coordinate plane between 0-1 x 0-1
       x=data_point.x
       y=data_point.y
-      pixelLoc.append(pixels(x,y,color))
-      for obj in range(len(pixelLoc)):
-        cv2.circle(image, (int(obj.x*camRes[0]),int(obj.y*camRes[1])), 1, obj.color, 2)
-      print(gest+" @ ("+str(x)+","+str(y))
+      print(gest+' @ '+str(x)+', '+str(y))
+      print(color)
+
       #Setting pitch and volume given screen position of wrist
       sinewave.set_pitch(maxPitch*(x-.5))
       sinewave.set_volume(8*(y-.5))
+
+      pixelLoc.insert(0,pixels(x,y,color))
+      pixelLoc.pop()
+
+      for obj in pixelLoc:
+        if(obj != None):
+          cv2.circle(image, (int(obj.x*camRes[0]),int(obj.y*camRes[1])), 2, obj.color, 2)
     # Showing frame
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
