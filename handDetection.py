@@ -23,7 +23,7 @@ gest = ""
 
 pixelLoc = []
 
-camRes = [1280,720]
+camRes = [640,480]
 
 cam = cv2.VideoCapture(0)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, camRes[0])
