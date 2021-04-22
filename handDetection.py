@@ -3,6 +3,15 @@ import mediapipe as mp
 import tensorflow.keras
 from PIL import Image, ImageOps
 import numpy as np
+from pysinewave import SineWave
+import collections
+
+class pixels:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = color
+
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
@@ -10,17 +19,40 @@ mp_hands = mp.solutions.hands
 np.set_printoptions(suppress=True)
 
 gesture = ['Paper','Rock','Scissors']
+gest = ""
+
+pixelLoc = []
+
+camRes = [1280,720]
 
 cam = cv2.VideoCapture(0)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, camRes[0])
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, camRes[1])
 # Loading the model trained from Teachable Machine
 model = tensorflow.keras.models.load_model('keras_model.h5')
+
+#Create sinewave
+sinewave = SineWave(pitch = 0, pitch_per_second = 100)
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
 with mp_hands.Hands(
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5) as hands:
+  min_detection_confidence=0.5,
+  min_tracking_confidence=0.5) as hands:
   while cap.isOpened():
+    if gest == 'Paper':
+        color = 'red'
+        maxPitch = 24
+    elif gest == 'Rock':
+        color = 'green'
+        maxPitch = 12
+    else:
+        color = 'blue'
+        maxPitch = 6
+        pass
+    #Start Sine Wave
+    sinewave.play()
+
     success, image = cap.read()
     if not success:
       print("Ignoring empty camera frame.")
@@ -53,17 +85,22 @@ with mp_hands.Hands(
 
       #Getting the first hand rendered in the screen
       hand_landmark = results.multi_hand_landmarks[0]
-      #Drawing the first hand in the scene
-      #mp_drawing.draw_landmarks(image, hand_landmark, mp_hands.HAND_CONNECTIONS)
       data_point = hand_landmark.landmark[0]
 
       # Getting positional data of the wrist
       # Coordinate plane between 0-1 x 0-1
       x=data_point.x
       y=data_point.y
+      pixelLoc.append(pixels(x,y,color))
+      for i in range(len(pixelLoc)):
+        cv2.line(image, (int(pixelLoc[i-1].x*camRes[0]),int(pixelLoc[i-1].y*camRes[1])), (int(pixelLoc[i].x*camRes[0]),int(pixelLoc[i].y*camRes[1])), (0,255,0), 2)
       print(gest+" @ ("+str(x)+","+str(y))
+      #Setting pitch and volume given screen position of wrist
+      sinewave.set_pitch(maxPitch*(x-.5))
+      sinewave.set_volume(8*(y-.5))
     # Showing frame
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
       break
+
 cap.release()
