@@ -41,13 +41,13 @@ with mp_hands.Hands(
   min_tracking_confidence=0.5) as hands:
   while cap.isOpened():
     if gest == 'Paper':
-        color = 'red'
+        color = (255,0,0)
         maxPitch = 24
     elif gest == 'Rock':
-        color = 'green'
+        color = (0,255,0)
         maxPitch = 12
     else:
-        color = 'blue'
+        color = (0,0,255)
         maxPitch = 6
         pass
     #Start Sine Wave
@@ -92,8 +92,8 @@ with mp_hands.Hands(
       x=data_point.x
       y=data_point.y
       pixelLoc.append(pixels(x,y,color))
-      for i in range(len(pixelLoc)):
-        cv2.line(image, (int(pixelLoc[i-1].x*camRes[0]),int(pixelLoc[i-1].y*camRes[1])), (int(pixelLoc[i].x*camRes[0]),int(pixelLoc[i].y*camRes[1])), (0,255,0), 2)
+      for obj in range(len(pixelLoc)):
+        cv2.circle(image, (int(obj.x*camRes[0]),int(obj.y*camRes[1])), 1, obj.color, 2)
       print(gest+" @ ("+str(x)+","+str(y))
       #Setting pitch and volume given screen position of wrist
       sinewave.set_pitch(maxPitch*(x-.5))
